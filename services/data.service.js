@@ -34,7 +34,7 @@ let currentUser;
   }
 
 
- const login = (accno, pswd) => {
+ const login = (req,accno, pswd) => {
     var accnum = parseInt(accno); //ngModule, here no as argument in login()
     var password1 = pswd;
     var data = accountDetails;
@@ -42,7 +42,7 @@ let currentUser;
     if (accnum in data) {
       let pswd1 = data[accnum].pswd
       if (pswd1 == password1) {
-        currentUser = data[accnum]
+      req.session.currentUser = data[accnum]    //currentuser in the session
         //this.saveDetails()
         return {
             status: true,
@@ -63,6 +63,8 @@ let currentUser;
   }
 
  const deposit = (accno, pin, amount) => {
+
+  
 
     var accnum = parseInt(accno); 
     var userpin = pin;
@@ -87,7 +89,7 @@ let currentUser;
       else {
         return {
           status: false,
-          statusCode: 402,
+          statusCode: 422,
           Message: 'Incorrect account details.',
           //  balance:data[accnum].balance
         }
@@ -112,7 +114,7 @@ let currentUser;
       if (data[accnum].balance < useramount) {
         return {
           status: false,
-          statusCode: 402,
+          statusCode: 422,
           Message: 'Insufficient balance.',
           balance: data[accnum].balance
         }
@@ -138,7 +140,7 @@ let currentUser;
       else {
         return {
           status: false,
-          statusCode: 402,
+          statusCode: 422,
           Message: 'Incorrect account details.',
 
         }
@@ -147,7 +149,7 @@ let currentUser;
     else {
       return {
         status: false,
-        statusCode: 402,
+        statusCode: 422,
         Message: 'Incorrect account details.',
 
       }

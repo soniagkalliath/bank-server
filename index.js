@@ -1,14 +1,44 @@
 const express = require('express') //import express (server creation step:1)
 const app = express() //create express app (server creation step:2)
+const session= require('express-session')
 //for defining the default router
 const dataService = require('./services/data.service')
 app.use(express.json());
+app.use(session({
+    secret:'randomsecuringstring',  //to create session id 
+    resave: false,      //force save wont be work ie save only when modify the data.
+    saveUninitialized: false    // initialised only after setting the data
+
+}))     //session enabled
+
+const logMiddleware=(req,res,next)=>{
+    console.log("Middleware")
+    next()
+    }
+app.use(logMiddleware)
+
+
+const authMiddleware=(req,res,next)=>{
+    if(!req.session.currentUser){
+        return {
+          status: false,
+          statusCode: 401,
+          Message: 'Please Log in.',
+          
+        }
+      }
+      else{
+        next()
+      }
+    
+    }
+app.use(authMiddleware)
 
 app.get('/',(req,res)=>{
     res.status(401).send("Hello World")
 })
 
-app.get('/transactions',(req,res)=>{
+app.get('/transactions',authMiddleware,(req,res)=>{
     const result = dataService.getTransaction()
     res.status(200).json(result)
 })
@@ -23,16 +53,18 @@ app.post('/register',(req,res)=>{
 })
 
 app.post('/login',(req,res)=>{
-    const result = dataService.login(req.body.accno,req.body.pswd)
+    const result = dataService.login(req,req.body.accno,req.body.pswd)
+    //req.session
      res.status(result.statusCode).json(result)
  })
 
- app.post('/deposit',(req,res)=>{
+ app.post('/deposit',authMiddleware,(req,res)=>{
+  //   console.log(req.session.currentUser)
     const result = dataService.deposit(req.body.accno,req.body.pin,req.body.amount)
      res.status(result.statusCode).json(result)
  })
 
- app.post('/withdraw',(req,res)=>{
+ app.post('/withdraw',authMiddleware,(req,res)=>{
     const result = dataService.withdraw(req.body.accno,req.body.pin,req.body.amount)
      res.status(result.statusCode).json(result)
  })
